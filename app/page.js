@@ -124,7 +124,7 @@ export default function Home() {
           variant="h2"
           style={{ color: "#ebf5eeff", marginBottom: '2rem' }}
         >
-          Manage Your Pantry
+          Manage Your Inventory
         </Typography>
         <Box display="flex" justifyContent="center" alignItems="center" gap={2} marginBottom="1rem">
           <Button
