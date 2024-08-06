@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { collection, query, getDocs, doc, setDoc, getDoc, deleteDoc } from "firebase/firestore";
 import { firestore } from "@/firebase";
 import { AppBar, Toolbar, Box, Button, Modal, Stack, TextField, Typography, IconButton, Container } from "@mui/material";
@@ -8,7 +8,6 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { keyframes } from '@mui/system';
 
-// Define the keyframes for the sliding animation
 const slide = keyframes`
   0% {
     transform: translateX(0);
@@ -21,10 +20,62 @@ const slide = keyframes`
   }
 `;
 
-export default function Home() {
+const colors = {
+  black: "#040303ff",
+  darkSlateGray: "#3a4e48ff",
+  gray: "#6a7b76ff",
+  cambridgeBlue: "#8b9d83ff",
+};
+
+const CoverPage = ({ onEnter }) => (
+  <Box 
+    width="100vw" 
+    height="100vh" 
+    display="flex" 
+    flexDirection="column" 
+    justifyContent="center" 
+    alignItems="center" 
+    bgcolor={colors.black}
+  >
+    <Typography 
+      variant="h1" 
+      style={{ 
+        fontFamily: "'Playfair Display', serif", 
+        fontWeight: 700, 
+        color: colors.cambridgeBlue,
+        marginBottom: "20px"
+      }}
+    >
+      StockSmart
+    </Typography>
+    <Button
+      variant="contained"
+      onClick={onEnter}
+      style={{ backgroundColor: colors.gray, color: colors.black, marginBottom: "20px" }}
+    >
+      Go to Homepage
+    </Button>
+    <img 
+      src={'/pantry.jpg'} 
+      alt="Cover Image" 
+      style={{ 
+        width: '700px', 
+        height: 'auto', 
+        marginTop: '20px', 
+        borderRadius: '20px',  
+        boxShadow: '0 0 15px 10px rgba(8, 5, 4, 0.8)',  
+      }} 
+    />
+  </Box>
+);
+
+const HomePage = () => {
   const [inventory, setInventory] = useState([]);
   const [open, setOpen] = useState(false);
   const [itemName, setItemName] = useState('');
+  const [itemQuantity, setItemQuantity] = useState(1);
+  const [serialNumber, setSerialNumber] = useState('');
+  const [category, setCategory] = useState('');
   const [originalInventory, setOriginalInventory] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [animateCart, setAnimateCart] = useState({});
@@ -45,14 +96,14 @@ export default function Home() {
     setInventory(inventoryList);
   };
 
-  const addItem = async (item) => {
+  const addItem = async (item, quantity, serialNumber, category) => {
     const docRef = doc(collection(firestore, 'inventory'), item);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      const { quantity } = docSnap.data();
-      await setDoc(docRef, { quantity: quantity + 1 });
+      const { quantity: existingQuantity } = docSnap.data();
+      await setDoc(docRef, { quantity: existingQuantity + quantity, serialNumber, category }, { merge: true });
     } else {
-      await setDoc(docRef, { quantity: 1 });
+      await setDoc(docRef, { quantity, serialNumber, category });
     }
     await updateInventory();
     triggerCartAnimation(item);
@@ -66,7 +117,7 @@ export default function Home() {
       if (quantity === 1) {
         await deleteDoc(docRef);
       } else {
-        await setDoc(docRef, { quantity: quantity - 1 });
+        await setDoc(docRef, { quantity: quantity - 1 }, { merge: true });
       }
     }
     await updateInventory();
@@ -89,7 +140,7 @@ export default function Home() {
   useEffect(() => {
     updateInventory();
   }, []);
-  
+
   useEffect(() => {
     searchItems(searchTerm);
   }, [searchTerm]);
@@ -101,7 +152,13 @@ export default function Home() {
     }
   }, []);
 
-  const handleOpen = () => setOpen(true);
+  const handleOpen = () => {
+    setItemName('');
+    setItemQuantity(1);
+    setSerialNumber('');
+    setCategory('');
+    setOpen(true);
+  };
   const handleClose = () => setOpen(false);
 
   const searchRecipe = (itemName) => {
@@ -111,10 +168,10 @@ export default function Home() {
   };
 
   return (
-    <Box width="100vw" height="100vh" bgcolor="#283044ff" color="#ebf5eeff">
-      <AppBar position="static" style={{ backgroundColor: "#78a1bbff" }}>
+    <Box width="100vw" height="100vh" bgcolor={colors.black} color={colors.cambridgeBlue}>
+      <AppBar position="static" style={{ backgroundColor: colors.darkSlateGray }}>
         <Toolbar>
-          <Typography variant="h6" style={{ flexGrow: 1 }}>
+          <Typography variant="h6" style={{ flexGrow: 1, fontFamily: "'Playfair Display', serif" }}>
             StockSmart
           </Typography>
         </Toolbar>
@@ -122,7 +179,7 @@ export default function Home() {
       <Container maxWidth="lg" style={{ marginTop: '2rem', textAlign: 'center' }}>
         <Typography
           variant="h2"
-          style={{ color: "#ebf5eeff", marginBottom: '2rem' }}
+          style={{ color: colors.cambridgeBlue, marginBottom: '2rem', fontFamily: "'Playfair Display', serif" }}
         >
           Manage Your Inventory
         </Typography>
@@ -131,7 +188,7 @@ export default function Home() {
             variant="contained"
             onClick={handleOpen}
             ref={buttonRef}
-            style={{ backgroundColor: "#78a1bbff", color: "#ebf5eeff" }}
+            style={{ backgroundColor: colors.gray, color: colors.black }}
           >
             Add New Item
           </Button>
@@ -142,11 +199,11 @@ export default function Home() {
             onChange={(e) => setSearchTerm(e.target.value)}
             InputProps={{
               style: {
-                color: '#283044ff'
+                color: colors.black
               }
             }}
             ref={searchRef}
-            style={{ width: '100%', maxWidth: '600px', backgroundColor: '#ebf5eeff' }}
+            style={{ width: '100%', maxWidth: '600px', backgroundColor: colors.cambridgeBlue }}
           />
         </Box>
         <Modal open={open} onClose={handleClose}>
@@ -155,86 +212,112 @@ export default function Home() {
             top="50%"
             left="50%"
             width={400}
-            bgcolor="#ebf5eeff"
-            border="2px solid #78a1bbff"
+            bgcolor={colors.cambridgeBlue}
+            border={`2px solid ${colors.gray}`}
             boxShadow={24}
             p={4}
             display="flex"
             flexDirection="column"
-            gap={3}
+            gap={2}
             sx={{
               transform: "translate(-50%, -50%)"
             }}
           >
-            <Typography variant="h6" style={{ color: "#78a1bbff" }}>Add Items</Typography>
-            <Stack width="100%" direction="row" spacing={2}>
-              <TextField
-                variant="outlined"
-                fullWidth
-                value={itemName}
-                onChange={(e) => setItemName(e.target.value)}
-              />
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  addItem(itemName);
-                  setItemName("");
-                  handleClose();
-                }}
-                style={{ borderColor: "#78a1bbff", color: "#78a1bbff" }}
-              >
-                Add
-              </Button>
-            </Stack>
+            <Typography variant="h6" style={{ color: colors.darkSlateGray, fontFamily: "'Playfair Display', serif" }}>Add Items</Typography>
+            <TextField
+              variant="outlined"
+              fullWidth
+              value={itemName}
+              onChange={(e) => setItemName(e.target.value)}
+              label="Item Name"
+            />
+            <TextField
+              variant="outlined"
+              fullWidth
+              type="number"
+              value={itemQuantity}
+              onChange={(e) => setItemQuantity(Number(e.target.value))}
+              label="Quantity"
+            />
+            <TextField
+              variant="outlined"
+              fullWidth
+              value={serialNumber}
+              onChange={(e) => setSerialNumber(e.target.value)}
+              label="Serial Number"
+            />
+            <TextField
+              variant="outlined"
+              fullWidth
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              label="Category"
+            />
+            <Button
+              variant="outlined"
+              onClick={() => {
+                addItem(itemName, itemQuantity, serialNumber, category);
+                handleClose();
+              }}
+              style={{ borderColor: colors.darkSlateGray, color: colors.darkSlateGray }}
+            >
+              Add
+            </Button>
           </Box>
         </Modal>
-        <Box border="1px solid #78a1bbff" mt={2} width="100%" maxWidth="800px" mx="auto">
+        <Box border={`1px solid ${colors.gray}`} mt={2} width="100%" maxWidth="800px" mx="auto">
           <Box width="100%" height="100px"
-            bgcolor="#78a1bbff" display="flex" alignItems="center" justifyContent="center"
+            bgcolor={colors.darkSlateGray} display="flex" alignItems="center" justifyContent="center"
           >
-            <Typography variant="h2" style={{ color: "#ebf5eeff" }}>
+            <Typography variant="h2" style={{ color: colors.cambridgeBlue, fontFamily: "'Playfair Display', serif" }}>
               Inventory Items
             </Typography>
           </Box>
         </Box>
         <Stack width="100%" maxWidth="800px" spacing={2} overflow="auto" mt={2} mx="auto">
-          {inventory.map(({ name, quantity }) => (
+          {inventory.map(({ name, quantity, serialNumber, category }) => (
             <Box
               key={name}
               width="100%"
               display="flex"
               alignItems="center"
               justifyContent="space-between"
-              bgcolor="#78a1bbff"
+              bgcolor={colors.darkSlateGray}
               padding={2}
               mb={2}
               borderRadius="8px"
             >
-              <Typography variant="h6" style={{ color: "#283044ff" }} textAlign="center">
+              <Typography variant="h6" style={{ color: colors.black, fontFamily: "'Playfair Display', serif" }} textAlign="center">
+                {serialNumber}
+              </Typography>
+              <Typography variant="h6" style={{ color: colors.black, fontFamily: "'Playfair Display', serif" }} textAlign="center">
                 {name.charAt(0).toUpperCase() + name.slice(1)}
               </Typography>
-              <Typography variant="h6" style={{ color: "#283044ff" }} textAlign="center">
+              <Typography variant="h6" style={{ color: colors.black, fontFamily: "'Playfair Display', serif" }} textAlign="center">
                 {quantity}
+              </Typography>
+              <Typography variant="h6" style={{ color: colors.black, fontFamily: "'Playfair Display', serif" }} textAlign="center">
+                {category}
               </Typography>
               <Stack direction="row" spacing={2}>
                 <Button
                   variant="contained"
-                  onClick={() => addItem(name)}
-                  style={{ backgroundColor: "#283044ff", color: "#ebf5eeff" }}
+                  onClick={() => addItem(name, 1, serialNumber, category)}
+                  style={{ backgroundColor: colors.black, color: colors.cambridgeBlue }}
                   sx={animateCart[name] ? { animation: `${slide} 1s ease` } : {}}
                 >
                   Add to cart <ShoppingCartIcon style={{ marginLeft: '8px' }} />
                 </Button>
                 <IconButton
                   onClick={() => removeItem(name)}
-                  style={{ backgroundColor: "#283044ff", color: "#ebf5eeff" }}
+                  style={{ backgroundColor: colors.black, color: colors.cambridgeBlue }}
                 >
                   <DeleteIcon />
                 </IconButton>
                 <Button
                   variant="contained"
                   onClick={() => searchRecipe(name)}
-                  style={{ backgroundColor: "#283044ff", color: "#ebf5eeff" }}
+                  style={{ backgroundColor: colors.black, color: colors.cambridgeBlue }}
                 >
                   Recipe
                 </Button>
@@ -245,4 +328,12 @@ export default function Home() {
       </Container>
     </Box>
   );
-}
+};
+
+const App = () => {
+  const [showCover, setShowCover] = useState(true);
+
+  return showCover ? <CoverPage onEnter={() => setShowCover(false)} /> : <HomePage />;
+};
+
+export default App;
