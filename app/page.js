@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import { collection, query, getDocs, doc, setDoc, getDoc, deleteDoc } from "firebase/firestore";
@@ -7,6 +7,7 @@ import { AppBar, Toolbar, Box, Button, Modal, Stack, TextField, Typography, Icon
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { keyframes } from '@mui/system';
+
 
 const slide = keyframes`
   0% {
@@ -269,9 +270,18 @@ const HomePage = () => {
           <Box width="100%" height="100px"
             bgcolor={colors.darkSlateGray} display="flex" alignItems="center" justifyContent="center"
           >
-            <Typography variant="h2" style={{ color: colors.cambridgeBlue, fontFamily: "'Playfair Display', serif" }}>
+            <Typography variant="h3" style={{ color: colors.cambridgeBlue, fontFamily: "'Playfair Display', serif" }}>
               Inventory Items
             </Typography>
+          </Box>
+          <Box display="flex" justifyContent="space-between" bgcolor={colors.darkSlateGray} padding="16px">
+            <Typography variant="h6" style={{ color: colors.cambridgeBlue, width: '10%', textAlign: 'center' }}>Sr No.</Typography>
+            <Typography variant="h6" style={{ color: colors.cambridgeBlue, width: '20%', textAlign: 'center' }}>Item</Typography>
+            <Typography variant="h6" style={{ color: colors.cambridgeBlue, width: '15%', textAlign: 'center' }}>Quantity</Typography>
+            <Typography variant="h6" style={{ color: colors.cambridgeBlue, width: '20%', textAlign: 'center' }}>Category</Typography>
+            <Typography variant="h6" style={{ color: colors.cambridgeBlue, width: '10%', textAlign: 'center' }}>Add</Typography>
+            <Typography variant="h6" style={{ color: colors.cambridgeBlue, width: '10%', textAlign: 'center' }}>Remove</Typography>
+            <Typography variant="h6" style={{ color: colors.cambridgeBlue, width: '15%', textAlign: 'center' }}>Recipe</Typography>
           </Box>
         </Box>
         <Stack width="100%" maxWidth="800px" spacing={2} overflow="auto" mt={2} mx="auto">
@@ -287,41 +297,39 @@ const HomePage = () => {
               mb={2}
               borderRadius="8px"
             >
-              <Typography variant="h6" style={{ color: colors.black, fontFamily: "'Playfair Display', serif" }} textAlign="center">
+              <Typography variant="h6" style={{ color: colors.black, fontFamily: "'Playfair Display', serif", width: '10%', textAlign: 'center' }}>
                 {serialNumber}
               </Typography>
-              <Typography variant="h6" style={{ color: colors.black, fontFamily: "'Playfair Display', serif" }} textAlign="center">
+              <Typography variant="h6" style={{ color: colors.black, fontFamily: "'Playfair Display', serif", width: '20%', textAlign: 'center' }}>
                 {name.charAt(0).toUpperCase() + name.slice(1)}
               </Typography>
-              <Typography variant="h6" style={{ color: colors.black, fontFamily: "'Playfair Display', serif" }} textAlign="center">
+              <Typography variant="h6" style={{ color: colors.black, fontFamily: "'Playfair Display', serif", width: '15%', textAlign: 'center' }}>
                 {quantity}
               </Typography>
-              <Typography variant="h6" style={{ color: colors.black, fontFamily: "'Playfair Display', serif" }} textAlign="center">
+              <Typography variant="h6" style={{ color: colors.black, fontFamily: "'Playfair Display', serif", width: '20%', textAlign: 'center' }}>
                 {category}
               </Typography>
-              <Stack direction="row" spacing={2}>
-                <Button
-                  variant="contained"
-                  onClick={() => addItem(name, 1, serialNumber, category)}
-                  style={{ backgroundColor: colors.black, color: colors.cambridgeBlue }}
-                  sx={animateCart[name] ? { animation: `${slide} 1s ease` } : {}}
-                >
-                  Add to cart <ShoppingCartIcon style={{ marginLeft: '8px' }} />
-                </Button>
-                <IconButton
-                  onClick={() => removeItem(name)}
-                  style={{ backgroundColor: colors.black, color: colors.cambridgeBlue }}
-                >
-                  <DeleteIcon />
-                </IconButton>
-                <Button
-                  variant="contained"
-                  onClick={() => searchRecipe(name)}
-                  style={{ backgroundColor: colors.black, color: colors.cambridgeBlue }}
-                >
-                  Recipe
-                </Button>
-              </Stack>
+              <Button
+                variant="contained"
+                onClick={() => addItem(name, 1, serialNumber, category)}
+                style={{ backgroundColor: colors.black, color: colors.cambridgeBlue, width: '10%', flexShrink: 0 }}
+                sx={animateCart[name] ? { animation: `${slide} 1s ease` } : {}}
+              >
+                <ShoppingCartIcon />
+              </Button>
+              <IconButton
+                onClick={() => removeItem(name)}
+                style={{ color: colors.black, width: '10%', flexShrink: 0 }}
+              >
+                <DeleteIcon />
+              </IconButton>
+              <Button
+                variant="contained"
+                onClick={() => searchRecipe(name)}
+                style={{ backgroundColor: colors.black, color: colors.cambridgeBlue, width: '15%', flexShrink: 0 }}
+              >
+                Recipe
+              </Button>
             </Box>
           ))}
         </Stack>
